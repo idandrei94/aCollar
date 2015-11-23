@@ -50,12 +50,30 @@ public class calibeateLocation extends Activity {
                 if(distance1<distance2 && distance1<distance3) {
                     returnIntent.putExtra("beaconAmaj", BEACON_MAJOR_1);
                     returnIntent.putExtra("beaconAmin", BEACON_MINOR_1);
+                    returnIntent.putExtra("beaconBmaj", BEACON_MAJOR_2);
+                    returnIntent.putExtra("beaconBmin", BEACON_MAJOR_2);
+                    returnIntent.putExtra("beaconBdist", distance2);
+                    returnIntent.putExtra("beaconCmaj", BEACON_MAJOR_3);
+                    returnIntent.putExtra("beaconCmin", BEACON_MAJOR_3);
+                    returnIntent.putExtra("beaconCdist", distance3);
                 }else if(distance2 < distance1 && distance2 < distance3) {
                     returnIntent.putExtra("beaconAmaj", BEACON_MAJOR_2);
                     returnIntent.putExtra("beaconAmin", BEACON_MINOR_2);
+                    returnIntent.putExtra("beaconBmaj", BEACON_MAJOR_1);
+                    returnIntent.putExtra("beaconBmin", BEACON_MAJOR_1);
+                    returnIntent.putExtra("beaconBdist", distance1);
+                    returnIntent.putExtra("beaconCmaj", BEACON_MAJOR_3);
+                    returnIntent.putExtra("beaconCmin", BEACON_MAJOR_3);
+                    returnIntent.putExtra("beaconCdist", distance3);
                 }else {
                     returnIntent.putExtra("beaconAmaj", BEACON_MAJOR_3);
                     returnIntent.putExtra("beaconAmin", BEACON_MINOR_3);
+                    returnIntent.putExtra("beaconBmaj", BEACON_MAJOR_2);
+                    returnIntent.putExtra("beaconBmin", BEACON_MAJOR_2);
+                    returnIntent.putExtra("beaconBdist", distance2);
+                    returnIntent.putExtra("beaconCmaj", BEACON_MAJOR_1);
+                    returnIntent.putExtra("beaconCmin", BEACON_MAJOR_1);
+                    returnIntent.putExtra("beaconCdist", distance1);
                 }
                 setResult(Activity.RESULT_OK,returnIntent);
                 finish();
@@ -135,8 +153,6 @@ public class calibeateLocation extends Activity {
                         text.setText(device.getName()+": " + distance3 + "m.");
                         break;
                 }
-            } else {
-                Toast.makeText(calibeateLocation.this, "not found", Toast.LENGTH_SHORT).show();
             }
         }
     };
@@ -155,7 +171,7 @@ public class calibeateLocation extends Activity {
                 if(true) {
                     btAdapter.startLeScan(leScanCallback);
                     try {
-                        Thread.sleep(5000);
+                        Thread.sleep(2000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -226,10 +242,10 @@ public class calibeateLocation extends Activity {
         }
         double ratio = rssi*1.0/txPower;
         if (ratio < 1.0){
-            return Math.pow(ratio, 10.0);
+            return 0.65*Math.pow(ratio, 10.0);
         }else{
             double accuracy = (0.89976)*Math.pow(ratio, 7.7095) + 0.111;
-            return accuracy;
+            return 0.65*accuracy;
         }
     }
 }

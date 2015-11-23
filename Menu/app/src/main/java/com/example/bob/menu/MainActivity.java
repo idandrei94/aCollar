@@ -28,7 +28,8 @@ public class MainActivity extends Activity implements WifiP2pManager.ActionListe
 
     private Button calibrateBeacon,connect;
 
-    private int beaconAmaj = 0, beaconAmin = 0;
+    private int beaconAmaj = 0, beaconAmin = 0, beaconBmaj = 0, beaconBmin = 0, beaconCmaj = 0, beaconCmin = 0;
+    private float beaconBdist = 0, beaconCdist = 0;
 
     private WifiP2pManager mManager;
     //The thing returned with p2p
@@ -38,6 +39,8 @@ public class MainActivity extends Activity implements WifiP2pManager.ActionListe
     private IntentFilter mIntentFilter;
 
     private Collection peerList;
+
+    private String serverIP = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +56,7 @@ public class MainActivity extends Activity implements WifiP2pManager.ActionListe
             }
         });
 
-        connect = (Button) findViewById(R.id.Start);
+        connect = (Button) findViewById(R.id.start);
         connect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -61,7 +64,19 @@ public class MainActivity extends Activity implements WifiP2pManager.ActionListe
                     Intent intent = new Intent(MainActivity.this, calibeateLocation.class);
                     startActivityForResult(intent, 0);
                 }
-
+                else {
+                    Intent startIntent = new Intent(MainActivity.this, TrackActivity.class);
+                    Bundle bundle = new Bundle();
+                    startIntent.putExtra("beaconAmaj", beaconAmaj);
+                    startIntent.putExtra("beaconAmin", beaconAmin);
+                    startIntent.putExtra("beaconBmaj", beaconBmaj);
+                    startIntent.putExtra("beaconBmin", beaconBmin);
+                    startIntent.putExtra("beaconBdist", beaconBdist);
+                    startIntent.putExtra("beaconCmaj", beaconCmaj);
+                    startIntent.putExtra("beaconCmin", beaconCmin);
+                    startIntent.putExtra("beaconCdist", beaconCdist);
+                    startActivity(startIntent);
+                }
             }
         });
 
@@ -115,6 +130,12 @@ public class MainActivity extends Activity implements WifiP2pManager.ActionListe
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         beaconAmaj = data.getIntExtra("beaconAmaj", 0);
         beaconAmin = data.getIntExtra("beaconAmin", 0);
+        beaconBmaj = data.getIntExtra("beaconBmaj", 0);
+        beaconBmin = data.getIntExtra("beaconBmin", 0);
+        beaconBdist = data.getFloatExtra("beaconBdist", 0);
+        beaconCmin = data.getIntExtra("beaconCmin", 0);
+        beaconCmaj = data.getIntExtra("beaconCmaj", 0);
+        beaconCdist = data.getFloatExtra("beaconCdist", 0);
     }
 
     @Override
