@@ -19,13 +19,6 @@
         android:id="@+id/Connect"
         android:layout_below="@+id/calibrateB"
         android:layout_centerHorizontal="true" />
-    <Button
-        android:text="Start"
-        android:layout_width="200dp"
-        android:layout_height="60dp"
-        android:id="@+id/Start"
-        android:layout_below="@+id/Connect"
-        android:layout_centerHorizontal="true" />
 
 
 </RelativeLayout>

@@ -121,18 +121,18 @@ public class calibeateLocation extends Activity {
                 switch(minor) {
                     case BEACON_MINOR_1:
                         text = (TextView)findViewById(R.id.text1);
-                        distance1 = (float)calculateDistance(getTxPower(scanRecord), rssi);
-                        text.setText("Beacon A: " + distance1 + "m.");
+                        distance1 = (float)calculateDistance(-70, rssi);
+                        text.setText(device.getName()+": " + distance1 + "m.");
                         break;
                     case BEACON_MINOR_2:
                         text = (TextView)findViewById(R.id.text2);
-                        distance2 = (float)calculateDistance(getTxPower(scanRecord), rssi);
-                        text.setText("Beacon B: " + distance2 + "m.");
+                        distance2 = (float)calculateDistance(-70, rssi);
+                        text.setText(device.getName()+": " + distance2 + "m.");
                         break;
                     case BEACON_MINOR_3:
                         text = (TextView)findViewById(R.id.text3);
-                        distance3 = (float)calculateDistance(getTxPower(scanRecord), rssi);
-                        text.setText("Beacon C: " + distance3 + "m.");
+                        distance3 = (float)calculateDistance(-70, rssi);
+                        text.setText(device.getName()+": " + distance3 + "m.");
                         break;
                 }
             } else {
