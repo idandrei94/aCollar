@@ -14,6 +14,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.net.Socket;
+
 import static android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE;
 
 public class TrackActivity extends Activity {
@@ -37,7 +39,9 @@ public class TrackActivity extends Activity {
 
     private float distanceA = -1, distanceB = -1, distanceC = -1, yB, xC;
 
+    private long timeOfDeparture = 0;
 
+    private String address = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +67,7 @@ public class TrackActivity extends Activity {
         cMinor = getIntent().getExtras().getInt("beaconCmin", 0);
         cMajor = getIntent().getExtras().getInt("beaconCmaj", 0);
         xC = getIntent().getExtras().getFloat("beaconCdist", 0);
+        address = getIntent().getExtras().getString("address", "");
 
 
         BluetoothManager btManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
@@ -119,9 +124,42 @@ public class TrackActivity extends Activity {
             }
             if(!whereAmI()) {
                 ((TextView)findViewById(R.id.trackText)).setText("Out of area!");
+                if(timeOfDeparture == 0) {
+                    timeOfDeparture = System.currentTimeMillis();
+                } else if((timeOfDeparture - System.currentTimeMillis())/1000 == 10) {
+                    Toast.makeText(TrackActivity.this, "Out of area!", Toast.LENGTH_LONG).show();
+                    timeOfDeparture = 0;
+                    Thread t = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Socket socket = new Socket(address, 3000);
+                                socket.getOutputStream().write(0);
+                                socket.close();
+                            } catch(Exception e) {
+
+                            }
+                        }
+                    });
+                    t.run();
+                }
             }
             else {
                 ((TextView)findViewById(R.id.trackText)).setText("Inside area!");
+                timeOfDeparture = 0;
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Socket socket = new Socket(address, 3000);
+                            socket.getOutputStream().write(1);
+                            socket.close();
+                        } catch(Exception e) {
+
+                        }
+                    }
+                });
+                t.run();
             }
         }
     };
@@ -230,4 +268,6 @@ public class TrackActivity extends Activity {
     private float calcDistance(float x1, float y1, float x2, float y2) {
         return (float)Math.sqrt((x1-x2)*(x1-x2) + (y1 - y2) * (y1 - y2));
     }
+
+
 }

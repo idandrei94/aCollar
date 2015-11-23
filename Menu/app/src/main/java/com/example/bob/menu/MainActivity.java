@@ -1,32 +1,25 @@
 package com.example.bob.menu;
 
 import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
-import android.util.ArraySet;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Collection;
-import java.util.Iterator;
 
-import static android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE;
+public class MainActivity extends Activity implements WifiP2pManager.ConnectionInfoListener, WifiP2pManager.ActionListener, WifiP2pManager.PeerListListener {
 
-public class MainActivity extends Activity implements WifiP2pManager.ActionListener, WifiP2pManager.PeerListListener {
-
-    private Button calibrateBeacon,connect;
+    private Button calibrateBeacon, connect;
 
     private int beaconAmaj = 0, beaconAmin = 0, beaconBmaj = 0, beaconBmin = 0, beaconCmaj = 0, beaconCmin = 0;
     private float beaconBdist = 0, beaconCdist = 0;
@@ -60,22 +53,24 @@ public class MainActivity extends Activity implements WifiP2pManager.ActionListe
         connect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(beaconAmaj == 0 || beaconAmin == 0) {
+                if (beaconAmaj == 0 || beaconAmin == 0) {
                     Intent intent = new Intent(MainActivity.this, calibeateLocation.class);
                     startActivityForResult(intent, 0);
-                }
-                else {
-                    Intent startIntent = new Intent(MainActivity.this, TrackActivity.class);
-                    Bundle bundle = new Bundle();
-                    startIntent.putExtra("beaconAmaj", beaconAmaj);
-                    startIntent.putExtra("beaconAmin", beaconAmin);
-                    startIntent.putExtra("beaconBmaj", beaconBmaj);
-                    startIntent.putExtra("beaconBmin", beaconBmin);
-                    startIntent.putExtra("beaconBdist", beaconBdist);
-                    startIntent.putExtra("beaconCmaj", beaconCmaj);
-                    startIntent.putExtra("beaconCmin", beaconCmin);
-                    startIntent.putExtra("beaconCdist", beaconCdist);
-                    startActivity(startIntent);
+                } else {
+                    if (serverIP != null) {
+                        Intent startIntent = new Intent(MainActivity.this, TrackActivity.class);
+                        Bundle bundle = new Bundle();
+                        startIntent.putExtra("beaconAmaj", beaconAmaj);
+                        startIntent.putExtra("beaconAmin", beaconAmin);
+                        startIntent.putExtra("beaconBmaj", beaconBmaj);
+                        startIntent.putExtra("beaconBmin", beaconBmin);
+                        startIntent.putExtra("beaconBdist", beaconBdist);
+                        startIntent.putExtra("beaconCmaj", beaconCmaj);
+                        startIntent.putExtra("beaconCmin", beaconCmin);
+                        startIntent.putExtra("beaconCdist", beaconCdist);
+                        startIntent.putExtra("address", serverIP);
+                        startActivity(startIntent);
+                    }
                 }
             }
         });
@@ -153,6 +148,23 @@ public class MainActivity extends Activity implements WifiP2pManager.ActionListe
         peerList = peers.getDeviceList();
     }
 
+    @Override
+    public void onConnectionInfoAvailable(WifiP2pInfo info) {
+        //The actual connection is made here
+        if (info.groupFormed) {
+            if (info.isGroupOwner) {
+                //i is server, i does stuff
+                //Make the server socket thread thing
+                Toast.makeText(MainActivity.this, "Something went wrong.", Toast.LENGTH_SHORT).show();
+            } else {
+                //is is client
+                Toast.makeText(MainActivity.this, "I IZ NOT SERVER", Toast.LENGTH_SHORT).show();
+                serverIP = info.groupOwnerAddress.getHostAddress();
+            }
+        }
+    }
+
+
     private class MyBroadcastReceiver extends BroadcastReceiver {
 
         private WifiP2pManager mManager;
@@ -169,33 +181,25 @@ public class MainActivity extends Activity implements WifiP2pManager.ActionListe
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if(action.equals(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION))
-            {
+            if (action.equals(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)) {
                 //Merge dracia + notify activity
                 int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
-                if(state == WifiP2pManager.WIFI_P2P_STATE_ENABLED)
-                {
+                if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
                     //merge, all good
-                }
-                else
-                {
+                } else {
                     //Yo, turn wifi on
                     Toast.makeText(mActivity, "Please turn on wifi and try again!", Toast.LENGTH_LONG).show();
                 }
-            }else if(action.equals(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION))
-            {
-                if(mManager!=null)
-                {
+            } else if (action.equals(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION)) {
+                if (mManager != null) {
                     Toast.makeText(MainActivity.this, "mManager not NULL", Toast.LENGTH_SHORT);
                     mManager.requestPeers(mChannel, mActivity);
-                }else {
+                } else {
                     Toast.makeText(MainActivity.this, "mManager is NULL", Toast.LENGTH_SHORT);
                 }
-            }else if(action.equals(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION))
-            {
+            } else if (action.equals(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION)) {
 
-            }else if(action.equals(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION))
-            {
+            } else if (action.equals(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION)) {
 
             }
         }
