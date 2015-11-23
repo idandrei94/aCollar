@@ -53,7 +53,7 @@ public class MainActivity extends Activity implements WifiP2pManager.ActionListe
             }
         });
 
-        connect = (Button) findViewById(R.id.Connect);
+        connect = (Button) findViewById(R.id.Start);
         connect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
