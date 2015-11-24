@@ -6,7 +6,9 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,6 +18,7 @@ import android.widget.Toast;
 
 import java.io.DataOutputStream;
 import java.net.Socket;
+import java.util.Objects;
 
 import static android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE;
 
@@ -49,7 +52,7 @@ public class TrackActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_track);
 
-        ((Button)findViewById(R.id.finish)).setOnClickListener(new View.OnClickListener() {
+        ((Button) findViewById(R.id.finish)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();
@@ -113,60 +116,49 @@ public class TrackActivity extends Activity {
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             int minor = getMinor(scanRecord);
 
-            if(doWeWantThisDevice(scanRecord)) {
-                if(minor == aMinor) {
-                    distanceA = (float)calculateDistance(-70, rssi);
-                }else if(minor == bMinor) {
-                    distanceB = (float)calculateDistance(-70, rssi);
-                }
-                else if(minor == cMinor) {
-                    distanceC = (float)calculateDistance(-70, rssi);
+            if (doWeWantThisDevice(scanRecord)) {
+                if (minor == aMinor) {
+                    distanceA = (float) calculateDistance(-70, rssi);
+                } else if (minor == bMinor) {
+                    distanceB = (float) calculateDistance(-70, rssi);
+                } else if (minor == cMinor) {
+                    distanceC = (float) calculateDistance(-70, rssi);
                 }
             }
-            if(!whereAmI()) {
-                ((TextView)findViewById(R.id.trackText)).setText("Out of area!" + ((System.currentTimeMillis() - timeOfDeparture) / 1000));
-                if(timeOfDeparture == 0) {
+            if (!whereAmI()) {
+                ((TextView) findViewById(R.id.trackText)).setText("Out of area!" + ((System.currentTimeMillis() - timeOfDeparture) / 1000));
+                if (timeOfDeparture == 0) {
                     timeOfDeparture = System.currentTimeMillis();
-                } else if( (System.currentTimeMillis()-timeOfDeparture)/1000 == 5) {
+                } else if ((System.currentTimeMillis() - timeOfDeparture) / 1000 > 5) {
                     timeOfDeparture = 0;
-                    Thread t = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                Socket socket = new Socket(address, 3000);
-                                Toast.makeText(TrackActivity.this, "Opened socket", Toast.LENGTH_SHORT).show();
-                                DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-                                output.writeInt(1);
-                                socket.close();
-                                Toast.makeText(TrackActivity.this, "Warning sent successfully", Toast.LENGTH_SHORT).show();
-                            } catch(Exception e) {
-                                Toast.makeText(TrackActivity.this, "Could not send stuff over the socket", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
-                    t.run();
+                    new RetrieveFeedTask().execute();
                 }
-            }
-            else {
-                ((TextView)findViewById(R.id.trackText)).setText("Inside area!");
-                timeOfDeparture = 0;
-                Thread t = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Socket socket = new Socket(address, 3000);
-                            DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-                            output.writeInt(1);
-                            socket.close();
-                        } catch(Exception e) {
-
-                        }
-                    }
-                });
-                t.run();
             }
         }
     };
+
+   private class RetrieveFeedTask extends AsyncTask<Object, String, String> {
+
+
+        protected void onPostExecute() {
+            // TODO: check this.exception
+            // TODO: do something with the feed
+        }
+
+       @Override
+       protected String doInBackground(Object... params) {
+           try {
+               Socket socket = new Socket(address, 49152);
+               DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+               output.writeInt(0);
+               socket.close();
+
+           } catch (Exception e) {
+               e.printStackTrace();
+           }
+           return null;
+       }
+   }
 
     private class FindDevices implements Runnable {
 
