@@ -6,9 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,7 +19,7 @@ import android.widget.Toast;
 
 import java.util.Collection;
 
-public class MainActivity extends Activity implements WifiP2pManager.ConnectionInfoListener, WifiP2pManager.ActionListener, WifiP2pManager.PeerListListener {
+public class MainActivity extends Activity implements WifiP2pManager.ActionListener, WifiP2pManager.PeerListListener, WifiP2pManager.ConnectionInfoListener {
 
     private Button calibrateBeacon, connect;
 
@@ -54,8 +56,7 @@ public class MainActivity extends Activity implements WifiP2pManager.ConnectionI
             @Override
             public void onClick(View v) {
                 if (beaconAmaj == 0 || beaconAmin == 0) {
-                    Intent intent = new Intent(MainActivity.this, calibeateLocation.class);
-                    startActivityForResult(intent, 0);
+                    Toast.makeText(MainActivity.this, "Beacon calibration is required!", Toast.LENGTH_LONG).show();
                 } else {
                     if (serverIP != null) {
                         Intent startIntent = new Intent(MainActivity.this, TrackActivity.class);
@@ -70,6 +71,8 @@ public class MainActivity extends Activity implements WifiP2pManager.ConnectionI
                         startIntent.putExtra("beaconCdist", beaconCdist);
                         startIntent.putExtra("address", serverIP);
                         startActivity(startIntent);
+                    } else {
+                        Toast.makeText(MainActivity.this, "Wifi Direct group has not been estabilished yet!", Toast.LENGTH_LONG).show();
                     }
                 }
             }
@@ -78,12 +81,10 @@ public class MainActivity extends Activity implements WifiP2pManager.ConnectionI
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(getApplicationContext(), getMainLooper(), null);
         mIntentFilter = new IntentFilter();
-        mReceiver = new MyBroadcastReceiver(mManager, mChannel, MainActivity.this);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-        registerReceiver(mReceiver, mIntentFilter);
         mManager.discoverPeers(mChannel, MainActivity.this);
     }
 
@@ -96,6 +97,7 @@ public class MainActivity extends Activity implements WifiP2pManager.ConnectionI
     @Override
     protected void onResume() {
         super.onResume();
+        mReceiver = new MyBroadcastReceiver(mManager, mChannel, MainActivity.this);
         registerReceiver(mReceiver, mIntentFilter);
     }
 
@@ -145,13 +147,17 @@ public class MainActivity extends Activity implements WifiP2pManager.ConnectionI
 
     @Override
     public void onPeersAvailable(WifiP2pDeviceList peers) {
-        peerList = peers.getDeviceList();
+        Toast.makeText(MainActivity.this, "Faund divais", Toast.LENGTH_SHORT).show();
+        peerList = peers.getDeviceList();WifiP2pManager.ConnectionInfoListener gInfoListener = (WifiP2pManager.ConnectionInfoListener) MainActivity.this;
+        mManager.requestConnectionInfo(mChannel, MainActivity.this);
     }
 
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo info) {
         //The actual connection is made here
+        Toast.makeText(MainActivity.this, info.toString(), Toast.LENGTH_SHORT).show();
         if (info.groupFormed) {
+            Toast.makeText(MainActivity.this, "Group has been formed", Toast.LENGTH_SHORT).show();
             if (info.isGroupOwner) {
                 //i is server, i does stuff
                 //Make the server socket thread thing
@@ -163,7 +169,6 @@ public class MainActivity extends Activity implements WifiP2pManager.ConnectionI
             }
         }
     }
-
 
     private class MyBroadcastReceiver extends BroadcastReceiver {
 

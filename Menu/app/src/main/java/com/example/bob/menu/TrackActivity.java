@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.DataOutputStream;
 import java.net.Socket;
 
 import static android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE;
@@ -123,21 +124,23 @@ public class TrackActivity extends Activity {
                 }
             }
             if(!whereAmI()) {
-                ((TextView)findViewById(R.id.trackText)).setText("Out of area!");
+                ((TextView)findViewById(R.id.trackText)).setText("Out of area!" + ((System.currentTimeMillis() - timeOfDeparture) / 1000));
                 if(timeOfDeparture == 0) {
                     timeOfDeparture = System.currentTimeMillis();
-                } else if((timeOfDeparture - System.currentTimeMillis())/1000 == 10) {
-                    Toast.makeText(TrackActivity.this, "Out of area!", Toast.LENGTH_LONG).show();
+                } else if( (System.currentTimeMillis()-timeOfDeparture)/1000 == 5) {
                     timeOfDeparture = 0;
                     Thread t = new Thread(new Runnable() {
                         @Override
                         public void run() {
                             try {
                                 Socket socket = new Socket(address, 3000);
-                                socket.getOutputStream().write(0);
+                                Toast.makeText(TrackActivity.this, "Opened socket", Toast.LENGTH_SHORT).show();
+                                DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+                                output.writeInt(1);
                                 socket.close();
+                                Toast.makeText(TrackActivity.this, "Warning sent successfully", Toast.LENGTH_SHORT).show();
                             } catch(Exception e) {
-
+                                Toast.makeText(TrackActivity.this, "Could not send stuff over the socket", Toast.LENGTH_SHORT).show();
                             }
                         }
                     });
@@ -152,7 +155,8 @@ public class TrackActivity extends Activity {
                     public void run() {
                         try {
                             Socket socket = new Socket(address, 3000);
-                            socket.getOutputStream().write(1);
+                            DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+                            output.writeInt(1);
                             socket.close();
                         } catch(Exception e) {
 
