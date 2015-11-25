@@ -171,7 +171,7 @@ public class calibeateLocation extends Activity {
                 if(true) {
                     btAdapter.startLeScan(leScanCallback);
                     try {
-                        Thread.sleep(2000);
+                        Thread.sleep(8000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

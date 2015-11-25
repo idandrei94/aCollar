@@ -47,6 +47,8 @@ public class TrackActivity extends Activity {
 
     private String address = null;
 
+    private boolean run = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,6 +88,18 @@ public class TrackActivity extends Activity {
         Runnable find = new FindDevices(btAdapter);
         Thread t = new Thread(find);
         t.start();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        run = false;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        run = true;
     }
 
     @Override
@@ -172,13 +186,15 @@ public class TrackActivity extends Activity {
         public void run() {
             while(true) {
                 if(true) {
-                    btAdapter.startLeScan(leScanCallback);
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    if (run) {
+                        btAdapter.startLeScan(leScanCallback);
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        btAdapter.stopLeScan(leScanCallback);
                     }
-                    btAdapter.stopLeScan(leScanCallback);
                 }
             }
         }
